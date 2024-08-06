@@ -35,6 +35,7 @@ class Popup:
         self.cooldown = 0
         self.open = False
         self.toggle_event = threading.Event()
+        self.quit_event = threading.Event()
         self.scheduled_action = None
 
     def __enter__(self):
@@ -131,9 +132,16 @@ class Popup:
                 if self.scheduled_action:
                     self.scheduled_action()
                     self.scheduled_action = None
+                if self.quit_event.is_set():
+                    break
             except KeyboardInterrupt:
                 break
         self.ahk.stop_hotkeys()
+
+    def quit(self):
+        if self.open:
+            self.hide()
+        self.quit_event.set()
 
     def schedule_toggle(self):
         self.toggle_event.set()
