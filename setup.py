@@ -1,9 +1,13 @@
 from setuptools import setup, find_packages
+from pathlib import Path
+
+readme = Path(__file__).parent / 'README.md'
 
 setup(
     name='popui',
     version='0.0.1',
     description='A Python module for creating GUI popups with Dear PyGui and AutoHotkey on Windows',
+    long_description=readme.read_text(),
     author='KyleTheScientist',
     author_email='kylethescientist@gmail.com',
     url='https://github.com/KyleTheScientist/popui',

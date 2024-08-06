@@ -11,7 +11,7 @@ from . import keys
 class Popup:
 
     ON_MOUSE = 0
-    ON_CONTEXT = 1
+    ON_APP = 1
     ON_SCREEN = 2
 
     KEY_PRESS = 0
@@ -79,7 +79,7 @@ class Popup:
             x, y = self.ahk.get_mouse_position()
             off_x, off_y = viewport_width / 2, viewport_height / 2
             dpg.set_viewport_pos((x - off_x, y - off_y))
-        elif self.anchor_point == self.ON_CONTEXT:
+        elif self.anchor_point == self.ON_APP:
             active_window = self.ahk.get_active_window()
             x, y, w, h = active_window.get_position()
             off_x, off_y = viewport_width / 2, viewport_height / 2

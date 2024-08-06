@@ -1,4 +1,4 @@
-from .popup import Popup
+from popui.popup import Popup
 
 def do_something():
     print('Doing something')
