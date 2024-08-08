@@ -33,6 +33,7 @@ class Popup:
         self.anchor_point = anchor
         self.build = build
         self.cooldown = 0
+        self.built = False
         self.open = False
         self.toggle_event = threading.Event()
         self.quit_event = threading.Event()
@@ -45,7 +46,7 @@ class Popup:
     def __exit__(self, exc_type, exc_val, exc_tb):
         dpg.pop_container_stack()
 
-    def show(self):
+    def start(self):
         dpg.create_context()
         dpg.setup_dearpygui()
 
@@ -61,17 +62,19 @@ class Popup:
         self.build(self) # Add user content
         dpg.show_viewport()
         dpg.set_frame_callback(dpg.get_frame_count() + 1, callback=self.focus)
+        title = dpg.get_viewport_title()
+        self.window = self.ahk.find_window_by_class(title)
         self.open = True
+        self.built = True
         dpg.start_dearpygui()
         dpg.destroy_context()
 
-    def hide(self):
+    def close(self):
         dpg.stop_dearpygui()
         self.open = False
 
     def focus(self):
-        title = dpg.get_viewport_title()
-        self.ahk.find_window_by_class(title).activate()
+        self.window.activate()
 
     def anchor(self):
         viewport_width = dpg.get_viewport_width()
@@ -98,6 +101,8 @@ class Popup:
         if not self.application:
             return True
         active_window = self.ahk.get_active_window()
+        if not active_window:
+            return False
         if ' ' not in self.application:
             value = active_window.title
             application = self.application
@@ -111,15 +116,30 @@ class Popup:
                 raise ValueError(f"Invalid application type: {self.application}")
         return application == value
 
+    def hide(self):
+        self.open = False
+        self.window.hide()
+        if self.application:
+            self.ahk.find_window_by_class(self.application).activate()
+
+    def show(self):
+        self.open = True
+        self.window.show()
+        self.focus()
+
     def toggle(self):
         if time() < self.cooldown:
             return
-        self.cooldown = time() + 0.1
+        self.cooldown = time() + 0.01
 
         if self.open:
             self.hide()
         elif self.application_match():
-            self.show()
+            if self.built:
+                self.show()
+            else:
+                self.start()
+
 
     def block(self):
         self.ahk.start_hotkeys()
@@ -140,7 +160,7 @@ class Popup:
 
     def quit(self):
         if self.open:
-            self.hide()
+            self.close()
         self.quit_event.set()
 
     def schedule_toggle(self):
@@ -164,8 +184,10 @@ class Popup:
             callback = self.schedule(callback)
 
         shortcut = kwargs.pop('shortcut', None)
+        parent = kwargs.pop('parent', None) or dpg.top_container_stack() or self.root
         button = dpg.add_button(label=label,
                                 callback=callback,
+                                parent=parent,
                                 **kwargs)
 
         if shortcut:
@@ -189,8 +211,3 @@ class Popup:
             if isinstance(key, str):
                 key = keys.KEY_CODES[key.lower()]
             handler(key=key, callback=callback)
-
-if __name__ == '__main__':
-    def build(popup: Popup):
-        dpg.add_button(label='Close', callback=popup.toggle, parent=popup.root)
-    Popup('^Space', build).block()

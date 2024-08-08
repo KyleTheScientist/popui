@@ -1,3 +1,13 @@
+'''
+To build the package, run:
+    pip install --upgrade build && rm dist/* && python -m build
+
+The built package will be in the dist/ directory
+
+To upload the package to PyPI, run:
+    pip install --upgrade twine && twine upload dist/*
+'''
+
 from setuptools import setup, find_packages
 from pathlib import Path
 
@@ -5,7 +15,7 @@ readme = Path(__file__).parent / 'README.md'
 
 setup(
     name='popui',
-    version='0.0.4',
+    version='0.0.5',
     description='A Python module for creating GUI popups with Dear PyGui and AutoHotkey on Windows',
     long_description=readme.read_text(),
     long_description_content_type='text/markdown',
@@ -15,6 +25,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'ahk',
+        'ahk[binary]',
         'dearpygui',
     ],
     keywords=['gui', 'popup', 'dearpygui', 'autohotkey'],

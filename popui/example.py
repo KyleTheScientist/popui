@@ -1,4 +1,4 @@
-from popui.popup import Popup
+from .popup import Popup
 
 def do_something():
     print('Doing something')
@@ -13,7 +13,7 @@ def build(popup: Popup):
     popup.add_keybind('tab', lambda: print('Tabbing'))
 
 if __name__ == '__main__':
-    popup = Popup('^e',
+    popup = Popup('^e up',
                   build,
                   width=1000,
                   height=300,
