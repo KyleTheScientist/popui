@@ -15,7 +15,7 @@ readme = Path(__file__).parent / 'README.md'
 
 setup(
     name='popui',
-    version='0.0.5',
+    version='0.0.6',
     description='A Python module for creating GUI popups with Dear PyGui and AutoHotkey on Windows',
     long_description=readme.read_text(),
     long_description_content_type='text/markdown',

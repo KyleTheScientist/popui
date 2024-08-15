@@ -60,7 +60,7 @@ for key, name in KEY_NAMES.items():
 
 
 def key_code(name):
-    return KEY_CODES[name]
+    return KEY_CODES[name.lower()]
 
 def key_name(code):
     return KEY_NAMES[code]

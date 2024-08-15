@@ -17,9 +17,7 @@ from popui import Popup
 
 def build(popup: Popup):
     popup.add_button('Do something', callback=lambda: print('Doing something'))
-    popup.add_button("Do something (Keep window open)",
-                     lambda: print('Doing something'),
-                     close=False)
+    popup.add_button("Do Nothing (Keep window open)", popup.no_op, close=False)
     popup.add_keybind('tab', lambda: print('Tabbing'))
 ```
 The `popup.add_button()` method is a convenience method that creates a button that will close the popup window after the callback function is called by default.
