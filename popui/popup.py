@@ -1,13 +1,13 @@
-import tkinter as tk
 import threading
 import faulthandler
 
-from . import keys
+from .keys import KEYS
 from ahk import AHK
 from ahk.directives import NoTrayIcon
 from dearpygui import dearpygui as dpg
 from time import time
 from typing import Callable, Iterable
+from screeninfo import get_monitors
 
 
 faulthandler.enable()
@@ -37,8 +37,11 @@ class Popup:
         :param appplication: The application to anchor the popup window to, as an AHK title
         :param viewport_args: Additional arguments for the Dear PyGUI viewport
         '''
+        get_monitors() # This somehow makes the text not blurry
         self.ahk = AHK(directives=[NoTrayIcon(apply_to_hotkeys_process=True)])
         self.ahk.add_hotkey(hotkey, callback=self.toggle)
+        self.ahk.start_hotkeys()
+
         self.gui = dpg
         self.application = appplication
         self.anchor_point = anchor
@@ -57,6 +60,8 @@ class Popup:
         self.quit_event = threading.Event()
         self.scheduled_action = None
         self.scheduled_keybinds = []
+        self.setup()
+        dpg.set_frame_callback(dpg.get_frame_count() + 1, callback=self.hide)
 
     def setup(self):
         '''
@@ -71,25 +76,16 @@ class Popup:
         dpg.create_viewport(**self.viewport_args)
         dpg.set_viewport_always_top(True)
         with dpg.handler_registry():
-            dpg.add_key_press_handler(key=keys.ESCAPE, callback=self.hide)
+            dpg.add_key_press_handler(key=dpg.mvKey_Escape, callback=self.hide)
 
         self.build(self) # Add user content
-        dpg.show_viewport()
         dpg.set_frame_callback(dpg.get_frame_count() + 1, callback=self.focus)
+        dpg.show_viewport()
         title = dpg.get_viewport_title()
         self.window = self.ahk.find_window_by_class(title)
         self.open = True
         self.built = True
         self.anchor()
-        dpg.start_dearpygui()
-        dpg.destroy_context()
-
-    def close(self):
-        '''
-        Closes the popup window
-        '''
-        dpg.stop_dearpygui()
-        self.open = False
 
     def focus(self):
         '''
@@ -106,23 +102,31 @@ class Popup:
         viewport_height = dpg.get_viewport_height()
         if self.anchor_point == self.ON_MOUSE:
             x, y = self.ahk.get_mouse_position(coord_mode='Screen')
+            monitor = self._get_bounding_monitor(x, y)
             off_x, off_y = viewport_width / 2, viewport_height / 2
-            dpg.set_viewport_pos((x - off_x, y - off_y))
+            x = x - off_x
+            y = y - off_y
+            if monitor:
+                x = max(monitor.x, x)
+                y = max(monitor.y, y)
+                x = min(monitor.x + monitor.width - viewport_width, x)
+                y = min(monitor.y + monitor.height - viewport_height, y)
 
         elif self.anchor_point == self.ON_APP:
             active_window = self.ahk.get_active_window()
             x, y, w, h = active_window.get_position()
             off_x, off_y = viewport_width / 2, viewport_height / 2
-            dpg.set_viewport_pos((x + w/2 - off_x, y + h/2 - off_y))
+            x = x + w/2 - off_x
+            y = y + h/2 - off_y
 
         elif self.anchor_point == self.ON_SCREEN:
-            root = tk.Tk()
-            screen_width = root.winfo_screenwidth()
-            screen_height = root.winfo_screenheight()
+            x, y = self.ahk.get_mouse_position(coord_mode='Screen')
+            monitor = self._get_bounding_monitor(x, y)
+            x = monitor.width / 2 - viewport_width / 2
+            y = monitor.height / 2 - viewport_height / 2
 
-            x = int(screen_width / 2 - viewport_width / 2)
-            y = int(screen_height / 2 - viewport_height / 2)
-            dpg.set_viewport_pos((x, y))
+        dpg.set_viewport_pos((x, y))
+
 
     def hide(self):
         '''
@@ -139,6 +143,9 @@ class Popup:
         '''
         Shows the popup window
         '''
+        if not self.built:
+            self.setup()
+            return
         self.open = True
         self.anchor()
         self.window.show()
@@ -155,40 +162,49 @@ class Popup:
         if self.open:
             self.hide()
         elif self._application_match():
-            if self.built:
-                self.show()
-            else:
-                self.setup()
-
+            self.show()
 
     def block(self):
         '''
         Blocks the main thread and starts the main loop,
         which listens for the keybinding that toggles the popup window
         '''
-        self.ahk.start_hotkeys()
-        while True:
-            try:
-                self.ahk.get_mouse_position()
-                if self.scheduled_action:
-                    self.scheduled_action()
-                    self.scheduled_action = None
-                if self.scheduled_keybinds:
-                    self._evaluate_keybinds()
-                if self.quit_event.is_set():
-                    break
-            except KeyboardInterrupt:
-                break
-        self.ahk.stop_hotkeys()
+        while self.step():
+            pass
+
+    def step(self):
+        '''
+        Steps the main loop once
+        '''
+        try:
+            dpg.render_dearpygui_frame()
+            if self.scheduled_action:
+                self.scheduled_action()
+                self.scheduled_action = None
+            if self.scheduled_keybinds:
+                self._evaluate_keybinds()
+            if self.quit_event.is_set() or not dpg.is_dearpygui_running():
+                self._teardown()
+                return False
+            return True
+        except KeyboardInterrupt:
+            self._teardown()
+            return False
 
     def quit(self):
         '''
         Closes the popup window and breaks the main blocking loop
         '''
-        self.close()
         self.quit_event.set()
 
-    def add_button(self, label: str, callback: Callable, close=True, keybind: str|int = None, **kwargs):
+    def _teardown(self):
+        '''
+        Tears down the popup window and the Dear PyGUI context
+        '''
+        self.ahk.stop_hotkeys()
+        dpg.destroy_context()
+
+    def add_button(self, label: str, callback: Callable, close=True, keybind: str = None, **kwargs):
         '''
         Adds a button to the popup window
 
@@ -204,7 +220,6 @@ class Popup:
         if close:
             callback = self._hide_before_calling(callback)
 
-        keybind = kwargs.pop('keybind', None)
         parent = kwargs.pop('parent', None) or dpg.top_container_stack() or self.root
         button = dpg.add_button(label=label,
                                 callback=callback,
@@ -214,7 +229,7 @@ class Popup:
         if keybind:
             callback = self._if_active(button, callback)
             with dpg.handler_registry():
-                dpg.add_key_press_handler(key=keys.KEY_CODES[str(keybind)], callback=callback)
+                dpg.add_key_press_handler(key=KEYS.keys[keybind.lower()], callback=callback)
 
         return button
 
@@ -257,18 +272,6 @@ class Popup:
         return application == value
 
     # Keybinds
-    def _convert_to_keycodes(self, key_input: str|int|Iterable[str|int]):
-        if isinstance(key_input, str):
-            key_input = [keys.KEY_CODES[key_input.lower()]]
-        elif isinstance(key_input, int):
-            key_input = [key_input]
-        elif isinstance(key_input, Iterable):
-            key_input = list(key_input)
-            for i, modifier in enumerate(key_input):
-                if isinstance(modifier, str):
-                    key_input[i] = keys.KEY_CODES[modifier.lower()]
-        return key_input
-
     def _evaluate_keybinds(self):
         sorted_keybinds = sorted(self.scheduled_keybinds, key=lambda x: len(x[0]))
         sorted_keybinds.pop()[1]()
@@ -283,7 +286,7 @@ class Popup:
             self.scheduled_keybinds.append((modifiers, callback))
         return callback_
 
-    def add_keybind(self, key: str|int, callback: Callable, modifiers: str|int|tuple[str|int] = (), action: int = KEY_PRESS):
+    def add_keybind(self, key: str, callback: Callable, modifiers: str|int|tuple[str|int] = (), action: int = KEY_PRESS):
         '''
         Adds a keybind to the popup window
 
@@ -301,10 +304,13 @@ class Popup:
         else:
             raise ValueError(f"Invalid action: {action}")
 
-        modifiers = self._convert_to_keycodes(modifiers)
+        if isinstance(modifiers, str):
+            modifiers = [KEYS[modifiers.lower()]]
+        else:
+            modifiers = [KEYS[modifier.lower()] for modifier in modifiers]
+
+        key = KEYS[key.lower()]
         with dpg.handler_registry():
-            if isinstance(key, str):
-                key = keys.KEY_CODES[key.lower()]
             handler(key=key, callback=self._keybind_callback(modifiers, callback))
 
     # Callbacks and callback wrappers
@@ -321,7 +327,6 @@ class Popup:
     def _if_active(self, element: int, callback):
         def callback_():
             if dpg.is_item_visible(element):
-                print('Shortcut pressed')
                 callback()
         return callback_
 
@@ -331,3 +336,10 @@ class Popup:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         dpg.pop_container_stack()
+
+    def _get_bounding_monitor(self, x, y):
+        for monitor in get_monitors():
+            if (monitor.x <= x < monitor.x + monitor.width and
+                monitor.y <= y < monitor.y + monitor.height) :
+                return monitor
+        raise ValueError(f"Could not find monitor for coordinates: {x}, {y}")

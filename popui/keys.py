@@ -1,66 +1,149 @@
-BACKSPACE = 8
-TAB = 9
-ENTER = 13
-SHIFT = 16
-CONTROL = 17
-ALT = 18
-CAPSLOCK = 20
-ESCAPE = 27
-SPACE = 32
-PAGEUP = 33
-PAGEDOWN = 34
-END = 35
-HOME = 36
-LEFT = 37
-UP = 38
-RIGHT = 39
-DOWN = 40
-DELETE = 46
-GRAVE = 192
+import dearpygui.dearpygui as dpg
 
-KEY_CODES = {}
-KEY_NAMES = {
-    BACKSPACE : "backspace",
-    TAB : "tab",
-    ENTER : "enter",
-    SHIFT : "shift",
-    CONTROL : "control",
-    ALT : "alt",
-    CAPSLOCK : "capslock",
-    ESCAPE : "escape",
-    SPACE : "space",
-    PAGEUP : "pageup",
-    PAGEDOWN : "pagedown",
-    END : "end",
-    HOME : "home",
-    LEFT : "left",
-    UP : "up",
-    RIGHT : "right",
-    DOWN : "down",
-    DELETE : "delete",
-    GRAVE: "`",
+
+KEYS = {
+    "0"                    :  dpg.mvKey_0,
+    "1"                    :  dpg.mvKey_1,
+    "2"                    :  dpg.mvKey_2,
+    "3"                    :  dpg.mvKey_3,
+    "4"                    :  dpg.mvKey_4,
+    "5"                    :  dpg.mvKey_5,
+    "6"                    :  dpg.mvKey_6,
+    "7"                    :  dpg.mvKey_7,
+    "8"                    :  dpg.mvKey_8,
+    "9"                    :  dpg.mvKey_9,
+    "a"                    :  dpg.mvKey_A,
+    "b"                    :  dpg.mvKey_B,
+    "c"                    :  dpg.mvKey_C,
+    "d"                    :  dpg.mvKey_D,
+    "e"                    :  dpg.mvKey_E,
+    "f"                    :  dpg.mvKey_F,
+    "g"                    :  dpg.mvKey_G,
+    "h"                    :  dpg.mvKey_H,
+    "i"                    :  dpg.mvKey_I,
+    "j"                    :  dpg.mvKey_J,
+    "k"                    :  dpg.mvKey_K,
+    "l"                    :  dpg.mvKey_L,
+    "m"                    :  dpg.mvKey_M,
+    "n"                    :  dpg.mvKey_N,
+    "o"                    :  dpg.mvKey_O,
+    "p"                    :  dpg.mvKey_P,
+    "q"                    :  dpg.mvKey_Q,
+    "r"                    :  dpg.mvKey_R,
+    "s"                    :  dpg.mvKey_S,
+    "t"                    :  dpg.mvKey_T,
+    "u"                    :  dpg.mvKey_U,
+    "v"                    :  dpg.mvKey_V,
+    "w"                    :  dpg.mvKey_W,
+    "x"                    :  dpg.mvKey_X,
+    "y"                    :  dpg.mvKey_Y,
+    "z"                    :  dpg.mvKey_Z,
+    "back"                 :  dpg.mvKey_Back,
+    "tab"                  :  dpg.mvKey_Tab,
+    "clear"                :  dpg.mvKey_Clear,
+    "return"               :  dpg.mvKey_Return,
+    "shift"                :  dpg.mvKey_Shift,
+    "control"              :  dpg.mvKey_Control,
+    "alt"                  :  dpg.mvKey_Alt,
+    "pause"                :  dpg.mvKey_Pause,
+    "capital"              :  dpg.mvKey_Capital,
+    "escape"               :  dpg.mvKey_Escape,
+    "spacebar"             :  dpg.mvKey_Spacebar,
+    "prior"                :  dpg.mvKey_Prior,
+    "next"                 :  dpg.mvKey_Next,
+    "end"                  :  dpg.mvKey_End,
+    "home"                 :  dpg.mvKey_Home,
+    "left"                 :  dpg.mvKey_Left,
+    "up"                   :  dpg.mvKey_Up,
+    "right"                :  dpg.mvKey_Right,
+    "down"                 :  dpg.mvKey_Down,
+    "select"               :  dpg.mvKey_Select,
+    "print"                :  dpg.mvKey_Print,
+    "execute"              :  dpg.mvKey_Execute,
+    "printscreen"          :  dpg.mvKey_PrintScreen,
+    "insert"               :  dpg.mvKey_Insert,
+    "delete"               :  dpg.mvKey_Delete,
+    "help"                 :  dpg.mvKey_Help,
+    "lwin"                 :  dpg.mvKey_LWin,
+    "rwin"                 :  dpg.mvKey_RWin,
+    "apps"                 :  dpg.mvKey_Apps,
+    "sleep"                :  dpg.mvKey_Sleep,
+    "numpad0"              :  dpg.mvKey_NumPad0,
+    "numpad1"              :  dpg.mvKey_NumPad1,
+    "numpad2"              :  dpg.mvKey_NumPad2,
+    "numpad3"              :  dpg.mvKey_NumPad3,
+    "numpad4"              :  dpg.mvKey_NumPad4,
+    "numpad5"              :  dpg.mvKey_NumPad5,
+    "numpad6"              :  dpg.mvKey_NumPad6,
+    "numpad7"              :  dpg.mvKey_NumPad7,
+    "numpad8"              :  dpg.mvKey_NumPad8,
+    "numpad9"              :  dpg.mvKey_NumPad9,
+    "multiply"             :  dpg.mvKey_Multiply,
+    "add"                  :  dpg.mvKey_Add,
+    "separator"            :  dpg.mvKey_Separator,
+    "subtract"             :  dpg.mvKey_Subtract,
+    "decimal"              :  dpg.mvKey_Decimal,
+    "divide"               :  dpg.mvKey_Divide,
+    "f1"                   :  dpg.mvKey_F1,
+    "f2"                   :  dpg.mvKey_F2,
+    "f3"                   :  dpg.mvKey_F3,
+    "f4"                   :  dpg.mvKey_F4,
+    "f5"                   :  dpg.mvKey_F5,
+    "f6"                   :  dpg.mvKey_F6,
+    "f7"                   :  dpg.mvKey_F7,
+    "f8"                   :  dpg.mvKey_F8,
+    "f9"                   :  dpg.mvKey_F9,
+    "f10"                  :  dpg.mvKey_F10,
+    "f11"                  :  dpg.mvKey_F11,
+    "f12"                  :  dpg.mvKey_F12,
+    "f13"                  :  dpg.mvKey_F13,
+    "f14"                  :  dpg.mvKey_F14,
+    "f15"                  :  dpg.mvKey_F15,
+    "f16"                  :  dpg.mvKey_F16,
+    "f17"                  :  dpg.mvKey_F17,
+    "f18"                  :  dpg.mvKey_F18,
+    "f19"                  :  dpg.mvKey_F19,
+    "f20"                  :  dpg.mvKey_F20,
+    "f21"                  :  dpg.mvKey_F21,
+    "f22"                  :  dpg.mvKey_F22,
+    "f23"                  :  dpg.mvKey_F23,
+    "f24"                  :  dpg.mvKey_F24,
+    "f25"                  :  dpg.mvKey_F25,
+    "numlock"              :  dpg.mvKey_NumLock,
+    "scrolllock"           :  dpg.mvKey_ScrollLock,
+    "lshift"               :  dpg.mvKey_LShift,
+    "rshift"               :  dpg.mvKey_RShift,
+    "lcontrol"             :  dpg.mvKey_LControl,
+    "rcontrol"             :  dpg.mvKey_RControl,
+    "lmenu"                :  dpg.mvKey_LMenu,
+    "rmenu"                :  dpg.mvKey_RMenu,
+    "browser_back"         :  dpg.mvKey_Browser_Back,
+    "browser_forward"      :  dpg.mvKey_Browser_Forward,
+    "browser_refresh"      :  dpg.mvKey_Browser_Refresh,
+    "browser_stop"         :  dpg.mvKey_Browser_Stop,
+    "browser_search"       :  dpg.mvKey_Browser_Search,
+    "browser_favorites"    :  dpg.mvKey_Browser_Favorites,
+    "browser_home"         :  dpg.mvKey_Browser_Home,
+    "volume_mute"          :  dpg.mvKey_Volume_Mute,
+    "volume_down"          :  dpg.mvKey_Volume_Down,
+    "volume_up"            :  dpg.mvKey_Volume_Up,
+    "media_next_track"     :  dpg.mvKey_Media_Next_Track,
+    "media_prev_track"     :  dpg.mvKey_Media_Prev_Track,
+    "media_stop"           :  dpg.mvKey_Media_Stop,
+    "media_play_pause"     :  dpg.mvKey_Media_Play_Pause,
+    "launch_mail"          :  dpg.mvKey_Launch_Mail,
+    "launch_media_select"  :  dpg.mvKey_Launch_Media_Select,
+    "launch_app1"          :  dpg.mvKey_Launch_App1,
+    "launch_app2"          :  dpg.mvKey_Launch_App2,
+    "colon"                :  dpg.mvKey_Colon,
+    "plus"                 :  dpg.mvKey_Plus,
+    "comma"                :  dpg.mvKey_Comma,
+    "minus"                :  dpg.mvKey_Minus,
+    "period"               :  dpg.mvKey_Period,
+    "slash"                :  dpg.mvKey_Slash,
+    "tilde"                :  dpg.mvKey_Tilde,
+    "open_brace"           :  dpg.mvKey_Open_Brace,
+    "backslash"            :  dpg.mvKey_Backslash,
+    "close_brace"          :  dpg.mvKey_Close_Brace,
+    "quote"                :  dpg.mvKey_Quote,
 }
-
-
-for i in range(10):
-    KEY_NAMES[48 + i] = str(i)
-
-for i in range(26):
-    KEY_NAMES[65 + i] = chr(65 + i).lower()
-
-
-for i in range(10):
-    KEY_NAMES[97 + i] = 'numpad' + str(i)
-
-for i in range(12):
-    KEY_NAMES[112 + i] = 'f' + str(i + 1)
-
-for key, name in KEY_NAMES.items():
-    KEY_CODES[name] = key
-
-
-def key_code(name):
-    return KEY_CODES[name.lower()]
-
-def key_name(code):
-    return KEY_NAMES[code]
