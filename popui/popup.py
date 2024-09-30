@@ -6,7 +6,7 @@ from ahk import AHK
 from ahk.directives import NoTrayIcon
 from dearpygui import dearpygui as dpg
 from time import time
-from typing import Callable, Iterable
+from typing import Callable
 from screeninfo import get_monitors
 
 
@@ -37,7 +37,7 @@ class Popup:
         :param appplication: The application to anchor the popup window to, as an AHK title
         :param viewport_args: Additional arguments for the Dear PyGUI viewport
         '''
-        get_monitors() # This somehow makes the text not blurry
+        get_monitors()  # This somehow makes the text not blurry
         self.ahk = AHK(directives=[NoTrayIcon(apply_to_hotkeys_process=True)])
         self.ahk.add_hotkey(hotkey, callback=self.toggle)
         self.ahk.start_hotkeys()
@@ -60,6 +60,7 @@ class Popup:
         self.quit_event = threading.Event()
         self.scheduled_action = None
         self.scheduled_keybinds = []
+        self._visibility_callbacks = []
         self.setup()
         dpg.set_frame_callback(dpg.get_frame_count() + 1, callback=self.hide)
 
@@ -78,7 +79,7 @@ class Popup:
         with dpg.handler_registry():
             dpg.add_key_press_handler(key=dpg.mvKey_Escape, callback=self.hide)
 
-        self.build(self) # Add user content
+        self.build(self)  # Add user content
         dpg.set_frame_callback(dpg.get_frame_count() + 1, callback=self.focus)
         dpg.show_viewport()
         title = dpg.get_viewport_title()
@@ -127,6 +128,8 @@ class Popup:
 
         dpg.set_viewport_pos((x, y))
 
+    def add_visibility_callback(self, callback: Callable[[bool], None]):
+        self._visibility_callbacks.append(callback)
 
     def hide(self):
         '''
@@ -138,6 +141,11 @@ class Popup:
             if window.title:
                 window.activate()
                 break
+        for callback in self._visibility_callbacks:
+            try:
+                callback(False)
+            except Exception as e:
+                print(f"Error in callback: {e}")
 
     def show(self):
         '''
@@ -150,6 +158,11 @@ class Popup:
         self.anchor()
         self.window.show()
         self.focus()
+        for callback in self._visibility_callbacks:
+            try:
+                callback(True)
+            except Exception as e:
+                print(f"Error in callback: {e}")
 
     def toggle(self):
         '''
@@ -242,15 +255,29 @@ class Popup:
         '''
         result = []
         width = kwargs.pop('width', -1)
+        cells = self.add_horizontal_group(len(definitions))
+        for i, definition in enumerate(definitions):
+            label, callback = definition
+            button = self.add_button(label, callback, parent=cells[i], width=width, **kwargs)
+            result.append(button)
+        return result
+
+    def add_horizontal_group(self, count: int):
+        '''
+        Creates a table row with a specified number of cells and returns the cell IDs
+        for adding content to the cells
+
+        :param count: The number of cells to create
+        :return: A list of cell IDs
+        '''
+        cells = []
         with dpg.table(header_row=False):
-            for _ in range(len(definitions)):
+            for _ in range(count):
                 dpg.add_table_column()
             with dpg.table_row():
-                for label, callback in definitions:
-                    with dpg.table_cell():
-                        button = self.add_button(label, callback, width=width, **kwargs)
-                        result.append(button)
-        return result
+                for _ in range(count):
+                    cells.append(dpg.add_table_cell())
+        return cells
 
     def _application_match(self):
         if not self.application:
@@ -286,7 +313,11 @@ class Popup:
             self.scheduled_keybinds.append((modifiers, callback))
         return callback_
 
-    def add_keybind(self, key: str, callback: Callable, modifiers: str|int|tuple[str|int] = (), action: int = KEY_PRESS):
+    def add_keybind(self,
+                    key: str,
+                    callback: Callable,
+                    modifiers: str | int | tuple[str | int] = (),
+                    action: int = KEY_PRESS):
         '''
         Adds a keybind to the popup window
 
@@ -339,7 +370,7 @@ class Popup:
 
     def _get_bounding_monitor(self, x, y):
         for monitor in get_monitors():
-            if (monitor.x <= x < monitor.x + monitor.width and
-                monitor.y <= y < monitor.y + monitor.height) :
+            if monitor.x <= x < monitor.x + monitor.width and \
+               monitor.y <= y < monitor.y + monitor.height:
                 return monitor
         raise ValueError(f"Could not find monitor for coordinates: {x}, {y}")
