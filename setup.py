@@ -1,6 +1,6 @@
 '''
 To build the package, run:
-    pip install --upgrade build && rm dist/* && python -m build
+    pip install --upgrade build && rm dist/*; python -m build
 
 The built package will be in the dist/ directory
 
@@ -15,7 +15,7 @@ readme = Path(__file__).parent / 'README.md'
 
 setup(
     name='popui',
-    version='0.0.8',
+    version='0.0.12',
     description='A Python module for creating GUI popups with Dear PyGui and AutoHotkey on Windows',
     long_description=readme.read_text(),
     long_description_content_type='text/markdown',
@@ -27,6 +27,7 @@ setup(
         'ahk',
         'ahk[binary]',
         'dearpygui',
+        'pywin32',
         'screeninfo'
     ],
     keywords=['gui', 'popup', 'dearpygui', 'autohotkey'],

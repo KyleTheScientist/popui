@@ -1,3 +1,4 @@
+import sys
 import threading
 import faulthandler
 
@@ -8,7 +9,10 @@ from dearpygui import dearpygui as dpg
 from time import time
 from typing import Callable
 from screeninfo import get_monitors
+from tempfile import NamedTemporaryFile
 
+if not sys.stderr:
+    sys.stderr = NamedTemporaryFile(delete=False)
 
 faulthandler.enable()
 
@@ -123,8 +127,8 @@ class Popup:
         elif self.anchor_point == self.ON_SCREEN:
             x, y = self.ahk.get_mouse_position(coord_mode='Screen')
             monitor = self._get_bounding_monitor(x, y)
-            x = monitor.width / 2 - viewport_width / 2
-            y = monitor.height / 2 - viewport_height / 2
+            x = monitor.x + monitor.width / 2 - viewport_width / 2
+            y = monitor.y + monitor.height / 2 - viewport_height / 2
 
         dpg.set_viewport_pos((x, y))
 
@@ -343,6 +347,15 @@ class Popup:
         key = KEYS[key.lower()]
         with dpg.handler_registry():
             handler(key=key, callback=self._keybind_callback(modifiers, callback))
+
+    def call_later(self, callback: Callable, frames=1):
+        '''
+        Schedules a callback to run after a certain number of frames
+
+        :param callback: The function to call
+        :param frames: The number of frames to wait before calling the function
+        '''
+        dpg.set_frame_callback(dpg.get_frame_count() + frames, callback=callback)
 
     # Callbacks and callback wrappers
     def no_op(self):
